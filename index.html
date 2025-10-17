@@ -1,0 +1,57 @@
+   <!DOCTYPE html>
+   <html lang="pt-br">
+   <head>
+       <meta charset="UTF-8">
+       <title>Player TV</title>
+       <style>
+         body { margin:0; background:black; display:flex; align-items:center; justify-content:center; height:100vh; }
+         video, img { max-width:100%; max-height:100%; }
+       </style>
+   </head>
+   <body>
+       <video id="playerVideo" controls autoplay muted></video>
+       <img id="playerImagem" style="display:none">
+       
+       <script>
+         async function carregarPlaylist() {
+           const resposta = await fetch('https://SEU_USUARIO.github.io/playlist-tv/playlist.json');
+           const dados = await resposta.json();
+           return dados.itens;
+         }
+
+         async function iniciarPlayer() {
+           const lista = await carregarPlaylist();
+           const v = document.getElementById('playerVideo');
+           const i = document.getElementById('playerImagem');
+           let atual = 0;
+
+           async function tocarProximo() {
+             const item = lista[atual];
+             
+             if (item.tipo === "video") {
+               i.style.display = "none";
+               v.style.display = "block";
+               v.src = item.url;
+               v.play();
+             } else {
+               v.pause();
+               v.style.display = "none";
+               i.src = item.url;
+               i.style.display = "block";
+             }
+
+             atual = (atual + 1) % lista.length;
+           }
+
+           v.addEventListener("ended", tocarProximo);
+           setInterval(() => {
+             if (i.style.display === "block") tocarProximo();
+           }, 5000); // troca imagem a cada 5s
+
+           tocarProximo();
+         }
+
+         iniciarPlayer();
+       </script>
+   </body>
+   </html>
