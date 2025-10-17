@@ -1,11 +1,85 @@
-   <!DOCTYPE html>
-   <html lang="pt-br">
-     <head>
-       <meta charset="UTF-8">
-       <title>Player de Vídeo</title>
-     </head>
-     <body style="background-color:black; color:white; text-align:center; padding-top:50px;">
-       <h1>🎥 Player de Vídeo Funcionando!</h1>
-       <p>Se você está vendo isso, o GitHub Pages foi configurado com sucesso!</p>
-     </body>
-   </html>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Player TV Prefeitura</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    video, img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <video id="playerVideo" autoplay muted playsinline></video>
+  <img id="playerImagem" style="display: none;">
+
+  <script>
+    // Função para carregar a playlist remota
+    async function carregarPlaylist() {
+      try {
+        const resposta = await fetch('https://warleymarquesascom-creator.github.io/tvsprefeitura-/playlist.json');
+        if (!resposta.ok) throw new Error('Falha ao carregar playlist');
+        const dados = await resposta.json();
+        return dados.itens;
+      } catch (erro) {
+        console.error(erro);
+        alert("Erro ao carregar playlist.");
+      }
+    }
+
+    // Função principal do player
+    async function iniciarPlayer() {
+      const lista = await carregarPlaylist();
+      if (!lista || lista.length === 0) {
+        document.body.innerHTML = "<p style='color:white'>Nenhum conteúdo na playlist.</p>";
+        return;
+      }
+
+      const video = document.getElementById('playerVideo');
+      const imagem = document.getElementById('playerImagem');
+      let indice = 0;
+
+      async function tocarProximo() {
+        const item = lista[indice];
+        
+        if (item.tipo === "video") {
+          imagem.style.display = "none";
+          video.style.display = "block";
+          video.src = item.url;
+          video.play();
+        } else if (item.tipo === "imagem") {
+          video.pause();
+          video.style.display = "none";
+          imagem.src = item.url;
+          imagem.style.display = "block";
+          // Mostra imagem por 7 segundos antes de ir pro próximo
+          setTimeout(tocarProximo, 7000);
+        }
+
+        indice = (indice + 1) % lista.length;
+      }
+
+      video.addEventListener('ended', tocarProximo);
+      tocarProximo();
+    }
+
+    iniciarPlayer();
+
+    // Recarrega a página a cada 2 horas para garantir atualização da playlist
+    setTimeout(() => location.reload(), 2 * 60 * 60 * 1000);
+  </script>
+
+</body>
+</html>
